@@ -1,0 +1,117 @@
+<html>
+  <head>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      .container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #f5f5f5;
+        filter: blur(20px) contrast(100);
+      }
+      .dot {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        background-color: black;
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        cursor: grab;
+      }
+      .overlay {
+        position: fixed;
+        top: 10px;
+        right: 10px;      /* moved from left to right */
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .overlay button {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .overlay button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay">
+      <button id="addDot">Add Dot</button>
+    </div>
+    <div class="container" id="container">
+      <div class="dot"></div>
+    </div>
+
+    <script>
+      const container = document.getElementById("container");
+      const existingDots = new WeakSet();
+
+      // Variables to keep track of drag state
+      let currentDot = null;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      function onMouseMove(e) {
+        if (!currentDot) return;
+        currentDot.style.left = `${e.clientX - offsetX}px`;
+        currentDot.style.top = `${e.clientY - offsetY}px`;
+      }
+
+      function onMouseUp(e) {
+        if (!currentDot) return;
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        currentDot.style.cursor = "grab";
+        currentDot = null;
+      }
+
+      function enableDrag(dot) {
+        if (existingDots.has(dot)) return;
+
+        dot.addEventListener("mousedown", (e) => {
+          currentDot = dot;
+          const rect = dot.getBoundingClientRect();
+          offsetX = e.clientX - rect.left;
+          offsetY = e.clientY - rect.top;
+          dot.style.cursor = "grabbing";
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        });
+      }
+
+      const randomPercent = (min, max) => (Math.random() * (max - min) + min) + '%';
+
+      document.querySelectorAll(".dot").forEach(enableDrag);
+      document.getElementById("addDot").addEventListener("click", () => {
+        const newDot = document.createElement("div");
+        newDot.className = "dot";
+        newDot.style.left = randomPercent(30, 80);
+        newDot.style.top = randomPercent(30, 80);
+        enableDrag(newDot);
+        container.appendChild(newDot);
+      });
+    </script>
+  </body>
+</html>
