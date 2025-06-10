@@ -14,7 +14,7 @@
         background: #f5f5f5;
         filter: blur(20px) contrast(100);
       }
-      .dot {
+      .goo {
         position: absolute;
         width: 100px;
         height: 100px;
@@ -57,44 +57,44 @@
   </head>
   <body>
     <div class="overlay">
-      <button id="addDot">Add Dot</button>
+      <button id="addGoo">Add Goo</button>
     </div>
     <div class="container" id="container">
-      <div class="dot"></div>
+      <div class="goo"></div>
     </div>
 
     <script>
       const container = document.getElementById("container");
-      const existingDots = new WeakSet();
+      const existingGoo = new WeakSet();
 
       // Variables to keep track of drag state
-      let currentDot = null;
+      let currentGoo = null;
       let offsetX = 0;
       let offsetY = 0;
 
       function onMouseMove(e) {
-        if (!currentDot) return;
-        currentDot.style.left = `${e.clientX - offsetX}px`;
-        currentDot.style.top = `${e.clientY - offsetY}px`;
+        if (!currentGoo) return;
+        currentGoo.style.left = `${e.clientX - offsetX}px`;
+        currentGoo.style.top = `${e.clientY - offsetY}px`;
       }
 
       function onMouseUp(e) {
-        if (!currentDot) return;
+        if (!currentGoo) return;
         document.removeEventListener("mousemove", onMouseMove);
         document.removeEventListener("mouseup", onMouseUp);
-        currentDot.style.cursor = "grab";
-        currentDot = null;
+        currentGoo.style.cursor = "grab";
+        currentGoo = null;
       }
 
-      function enableDrag(dot) {
-        if (existingDots.has(dot)) return;
+      function enableDrag(goo) {
+        if (existingGoo.has(goo)) return;
 
-        dot.addEventListener("mousedown", (e) => {
-          currentDot = dot;
-          const rect = dot.getBoundingClientRect();
+        goo.addEventListener("mousedown", (e) => {
+          currentGoo = goo;
+          const rect = goo.getBoundingClientRect();
           offsetX = e.clientX - rect.left;
           offsetY = e.clientY - rect.top;
-          dot.style.cursor = "grabbing";
+          goo.style.cursor = "grabbing";
 
           document.addEventListener("mousemove", onMouseMove);
           document.addEventListener("mouseup", onMouseUp);
@@ -103,14 +103,14 @@
 
       const randomPercent = (min, max) => (Math.random() * (max - min) + min) + '%';
 
-      document.querySelectorAll(".dot").forEach(enableDrag);
-      document.getElementById("addDot").addEventListener("click", () => {
-        const newDot = document.createElement("div");
-        newDot.className = "dot";
-        newDot.style.left = randomPercent(30, 80);
-        newDot.style.top = randomPercent(30, 80);
-        enableDrag(newDot);
-        container.appendChild(newDot);
+      document.querySelectorAll(".goo").forEach(enableDrag);
+      document.getElementById("addGoo").addEventListener("click", () => {
+        const newGoo = document.createElement("div");
+        newGoo.className = "goo";
+        newGoo.style.left = randomPercent(30, 80);
+        newGoo.style.top = randomPercent(30, 80);
+        enableDrag(newGoo);
+        container.appendChild(newGoo);
       });
     </script>
   </body>
