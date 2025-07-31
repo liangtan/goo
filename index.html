@@ -23,6 +23,7 @@
         top: 50%;
         left: 50%;
         cursor: grab;
+        touch-action: none; /* Prevent default scrolling while dragging */
       }
 
       /* when dark reader is enabled */
@@ -33,7 +34,7 @@
       .overlay {
         position: fixed;
         top: 10px;
-        right: 10px;      /* moved from left to right */
+        right: 10px;
         z-index: 10;
         background: rgba(255, 255, 255, 0.95);
         padding: 15px 20px;
@@ -73,27 +74,38 @@
       const container = document.getElementById("container");
       const existingGoo = new WeakSet();
 
-      // Variables to keep track of drag state
       let currentGoo = null;
       let offsetX = 0;
       let offsetY = 0;
 
-      function onMouseMove(e) {
-        if (!currentGoo) return;
-        currentGoo.style.left = `${e.clientX - offsetX}px`;
-        currentGoo.style.top = `${e.clientY - offsetY}px`;
+      function getCoords(e) {
+        if (e.touches && e.touches.length > 0) {
+          return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
       }
 
-      function onMouseUp(e) {
+      function onMove(e) {
         if (!currentGoo) return;
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
+        e.preventDefault();
+        const { x, y } = getCoords(e);
+        currentGoo.style.left = `${x - offsetX}px`;
+        currentGoo.style.top = `${y - offsetY}px`;
+      }
+
+      function onEnd() {
+        if (!currentGoo) return;
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onEnd);
+        document.removeEventListener("touchmove", onMove);
+        document.removeEventListener("touchend", onEnd);
         currentGoo.style.cursor = "grab";
         currentGoo = null;
       }
 
       function enableDrag(goo) {
         if (existingGoo.has(goo)) return;
+        existingGoo.add(goo);
 
         goo.addEventListener("mousedown", (e) => {
           currentGoo = goo;
@@ -102,12 +114,25 @@
           offsetY = e.clientY - rect.top;
           goo.style.cursor = "grabbing";
 
-          document.addEventListener("mousemove", onMouseMove);
-          document.addEventListener("mouseup", onMouseUp);
+          document.addEventListener("mousemove", onMove, { passive: false });
+          document.addEventListener("mouseup", onEnd);
+        });
+
+        goo.addEventListener("touchstart", (e) => {
+          const touch = e.touches[0];
+          const rect = goo.getBoundingClientRect();
+          offsetX = touch.clientX - rect.left;
+          offsetY = touch.clientY - rect.top;
+          currentGoo = goo;
+          goo.style.cursor = "grabbing";
+
+          document.addEventListener("touchmove", onMove, { passive: false });
+          document.addEventListener("touchend", onEnd);
         });
       }
 
-      const randomPercent = (min, max) => (Math.random() * (max - min) + min) + '%';
+      const randomPercent = (min, max) =>
+        Math.random() * (max - min) + min + "%";
 
       document.querySelectorAll(".goo").forEach(enableDrag);
       document.getElementById("addGoo").addEventListener("click", () => {
